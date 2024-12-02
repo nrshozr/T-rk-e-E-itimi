@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelimeleri Avla</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #6a11cb, #2575fc);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        h1 {
+            color: #4caf50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        #round-info {
+            font-size: 1.2rem;
+            color: #ff5722;
+            margin-bottom: 20px;
+        }
+
+        #question {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        #active-group {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 10px;
+            color: white;
+            border-radius: 10px;
+        }
+
+        .group-1 {
+            background-color: #4caf50;
+        }
+
+        .group-2 {
+            background-color: #2196f3;
+        }
+
+        #answer-input {
+            width: 80%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #submit-btn {
+            background-color: #ff5722;
+            color: white;
+        }
+
+        #start-btn {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        #play-btn {
+            background-color: #1e88e5;
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #timer {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #e91e63;
+        }
+
+        #scoreboard {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #group1-score, #group2-score {
+            font-size: 1.3rem;
+        }
+
+        #result {
+            font-size: 1.3rem;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #009688;
+        }
+
+        .intro-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #ff6a00, #ee0979);
+            color: white;
+            text-align: center;
+        }
+
+        .intro-screen h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .intro-screen p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Giriş Ekranı -->
+    <div class="intro-screen" id="intro-screen">
+        <h1>Kelimeleri Avla</h1>
+        <p>Eğlenceli bir kelime avı oyununa hazır mısınız? Hangi grubun daha hızlı ve doğru olduğunu görelim!</p>
+        <button id="play-btn">Oyuna Başla</button>
+    </div>
+
+    <!-- Oyun Alanı -->
+    <div class="container hidden" id="game-container">
+        <div id="game-header">
+            <h1>Kelimeleri Avla</h1>
+            <p id="round-info">1. Aşama: Kelimenin yapısını bul</p>
+        </div>
+        <div id="question-container">
+            <p id="question">Hazır mısınız?</p>
+        </div>
+        <div id="active-group" class="group-1">Sıra: Grup 1</div>
+        <input type="text" id="answer-input" placeholder="Cevabınızı yazın">
+        <button id="submit-btn">Gönder</button>
+        <p id="timer">Kalan Süre: <span id="time">10</span>s</p>
+        <div id="scoreboard">
+            <div id="group1-score">Grup 1: 0 Puan</div>
+            <div id="group2-score">Grup 2: 0 Puan</div>
+        </div>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        const introScreen = document.getElementById("intro-screen");
+        const playButton = document.getElementById("play-btn");
+        const gameContainer = document.getElementById("game-container");
+
+        const questionElement = document.getElementById("question");
+        const answerInput = document.getElementById("answer-input");
+        const timerElement = document.getElementById("time");
+        const group1ScoreElement = document.getElementById("group1-score");
+        const group2ScoreElement = document.getElementById("group2-score");
+        const resultElement = document.getElementById("result");
+        const activeGroupElement = document.getElementById("active-group");
+
+        let questions = [
+            { word: "kitaplık", root: "türemiş" },
+            { word: "evcil", root: "türemiş" },
+            { word: "kediler", root: "basit" },
+            { word: "güzelcehisar", root: "birleşik" },
+            { word: "bilgisayar", root: "birleşik" },
+            { word: "süpürge", root: "türemiş" },
+            { word: "elmaslar", root: "basit"},
+            { word: "sözlük", root: "türemiş"},
+            { word: "başkan", root: "türemiş"},
+            { word: "olağanüstü", root: "birleşik"},
+        ];
+
+        let group1Score = 0;
+        let group2Score = 0;
+        let currentQuestionIndex = 0;
+        let currentGroup = 1;
+        let timer;
+
+        playButton.addEventListener("click", () => {
+            introScreen.classList.add("hidden");
+            gameContainer.classList.remove("hidden");
+            startGame();
+        });
+
+        function startGame() {
+            group1Score = 0;
+            group2Score = 0;
+            currentQuestionIndex = 0;
+            currentGroup = 1;
+            resultElement.textContent = "";
+            updateGroupIndicator();
+            updateScores();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                endGame();
+                return;
+            }
+            const question = questions[currentQuestionIndex];
+            questionElement.textContent = `Kelime: ${question.word}`;
+            answerInput.value = "";
+            startTimer();
+        }
+
+        function checkAnswer() {
+            const userAnswer = answerInput.value.trim().toLowerCase();
+            const correctAnswer = questions[currentQuestionIndex].root;
+            if (userAnswer === correctAnswer) {
+                if (currentGroup === 1) {
+                    group1Score += 5;
+                } else {
+                    group2Score += 5;
+                }
+            }
+            currentQuestionIndex++;
+            currentGroup = currentGroup === 1 ? 2 : 1;
+            updateGroupIndicator();
+            updateScores();
+            loadQuestion();
+        }
+
+        function startTimer() {
+            let timeLeft = 15;
+            timerElement.textContent = timeLeft;
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    checkAnswer();
+                }
+            }, 1000);
+        }
+
+        function updateScores() {
+            group1ScoreElement.textContent = `Grup 1: ${group1Score} Puan`;
+            group2ScoreElement.textContent = `Grup 2: ${group2Score} Puan`;
+        }
+
+        function updateGroupIndicator() {
+            activeGroupElement.textContent = `Sıra: Grup ${currentGroup}`;
+            activeGroupElement.className = currentGroup === 1 ? "group-1" : "group-2";
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            questionElement.textContent = "Oyun Bitti!";
+            resultElement.textContent =
+                group1Score > group2Score
+                    ? "Grup 1 Kazandı!"
+                    : group1Score < group2Score
+                    ? "Grup 2 Kazandı!"
+                    : "Beraberlik!";
+        }
+
+        document.getElementById("submit-btn").addEventListener("click", checkAnswer);
+    </script>
+</body>
+</html>
